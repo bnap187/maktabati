@@ -1,0 +1,117 @@
+<! html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📚 مكتبتي</tiDOCTYPEtle>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#f4f6fb;color:#172033}
+body.dark{background:#101522;color:white}
+header{background:linear-gradient(135deg,#263b80,#5274df);color:white;text-align:center;padding:28px 15px}
+.logo{font-size:32px;font-weight:bold}.sub{margin:10px 0 20px}
+input{width:min(700px,100%);padding:14px;border:0;border-radius:12px;font-size:16px}
+nav{display:flex;gap:8px;overflow:auto;padding:12px;background:white;position:sticky;top:0;z-index:5}
+.dark nav{background:#192235}nav button{border:0;padding:10px 15px;border-radius:20px;white-space:nowrap}
+main{max-width:1100px;margin:auto;padding:20px 15px}
+.books{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
+.book{background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 15px #0001}
+.dark .book,.dark .box{background:#1b2435}.cover{height:150px;background:#405dcc;color:white;display:grid;place-items:center;font-size:60px}
+.info{padding:14px}.info h3{margin:0 0 8px}.author{color:#68738a;margin-bottom:10px}
+.actions{display:flex;gap:7px}.actions button{flex:1;padding:10px;border:0;border-radius:9px}
+.read{background:#405dcc;color:white}.fav{background:#eee}
+.dark .fav{background:#30394b;color:white}
+.modal{display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;padding:15px;z-index:10}
+.modal.show{display:flex}.box{background:white;padding:25px;border-radius:18px;width:min(600px,100%)}
+.close{float:left;border:0;border-radius:50%;padding:8px}.source{display:block;background:#405dcc;color:white;text-align:center;padding:12px;border-radius:9px;text-decoration:none;margin-top:15px}
+footer{text-align:center;background:#18223a;color:white;padding:25px;margin-top:30px}
+</style>
+</head>
+
+<body>
+<header>
+<div class="logo">📚 مكتبتي</div>
+<div class="sub">مكتبة عربية للقراءة المجانية</div>
+<input id="search" placeholder="🔎 ابحث عن كتاب أو مؤلف...">
+</header>
+
+<nav>
+<button onclick="filter('الكل')">الكل</button>
+<button onclick="filter('أدب')">الأدب</button>
+<button onclick="filter('تاريخ')">التاريخ</button>
+<button onclick="filter('فلسفة')">الفلسفة</button>
+<button onclick="filter('علوم')">العلوم</button>
+<button onclick="filter('لغة')">اللغة</button>
+<button onclick="favorites()">⭐ المفضلة</button>
+<button onclick="document.body.classList.toggle('dark')">🌙</button>
+</nav>
+
+<main>
+<h2>📖 الكتب</h2>
+<div id="books" class="books"></div>
+</main>
+
+<div id="modal" class="modal" onclick="if(event.target==this)closeModal()">
+<div class="box">
+<button class="close" onclick="closeModal()">✕</button>
+<h2 id="title"></h2>
+<p id="author"></p>
+<p id="desc"></p>
+<a id="link" class="source" target="_blank">🌐 فتح الكتاب</a>
+</div>
+</div>
+
+<footer>📚 مكتبتي — قراءة الكتب المتاحة بصورة قانونية</footer>
+
+<script>
+const data=[
+["كليلة ودمنة","عبد الله بن المقفع","أدب","🦊","كتاب من أشهر كتب الحكايات الرمزية","https://downloads.hindawi.org/books/29061736.pdf"],
+["حي بن يقظان","ابن طفيل","فلسفة","🌴","قصة فلسفية شهيرة","https://downloads.hindawi.org/books/53084742.pdf"],
+["رسالة الغفران","أبو العلاء المعري","أدب","📜","من أشهر الأعمال الأدبية العربية","https://downloads.hindawi.org/books/95904020.pdf"],
+["المعلقات العشر","شعراء الجاهلية","لغة","✒️","من أشهر قصائد الشعر العربي القديم","https://downloads.hindawi.org/books/39141640.pdf"],
+["تاريخ العلوم","مجموعة مؤلفين","علوم","🔬","كتاب عن تاريخ وتطور العلوم","https://downloads.hindawi.org/books/46860949.pdf"],
+["أدباء العرب في الأعصر العباسية","مجموعة مؤلفين","أدب","📚","كتاب عن الأدباء في العصر العباسي","https://downloads.hindawi.org/books/73640603.pdf"]
+];
+
+let list=data, fav=JSON.parse(localStorage.fav||"[]");
+
+function render(x=list){
+books.innerHTML=x.map((b,i)=>`
+<article class="book">
+<div class="cover">${b[3]}</div>
+<div class="info">
+<h3>${b[0]}</h3>
+<div class="author">✍️ ${b[1]}</div>
+<small>${b[2]}</small>
+<div class="actions">
+<button class="read" onclick="openBook(${i})">📖 تفاصيل</button>
+<button class="fav" onclick="favBook('${b[0]}')">${fav.includes(b[0])?'⭐':'☆'}</button>
+</div></div></article>`).join("");
+}
+
+function filter(c){
+list=c=="الكل"?data:data.filter(b=>b[2]==c);render();
+}
+
+search.oninput=()=>{let q=search.value.toLowerCase();render(data.filter(b=>b.join(" ").toLowerCase().includes(q)))};
+
+function favBook(t){
+fav.includes(t)?fav=fav.filter(x=>x!=t):fav.push(t);
+localStorage.fav=JSON.stringify(fav);render();
+}
+
+function favorites(){render(data.filter(b=>fav.includes(b[0])))}
+
+function openBook(i){
+let b=list[i];
+title.textContent=b[0];
+author.textContent="✍️ المؤلف: "+b[1];
+desc.textContent=b[4];
+link.href=b[5];
+modal.classList.add("show");
+}
+
+function closeModal(){modal.classList.remove("show")}
+render();
+</script>
+</body>
+  </html>
